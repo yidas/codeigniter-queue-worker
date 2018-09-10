@@ -39,6 +39,7 @@ OUTLINE
     - [Porperties Setting](#porperties-setting)
         - [Public Properties](#public-properties)
 - [Usage](#usage)
+    - [Running as Service](#running-as-service)
 
 ---
 
@@ -109,6 +110,11 @@ class My_worker extends WorkerController
 }
 ```
 
+You need to develop the queue processer by your own and then encapsulate it into the queue worker controller, which this worker library detects jobs by your callback result. 
+
+For example, you could develop memory cache queue to handle the listener and worker callbacks. In other words, your processes for listener and worker both detect jobs from same job queue such as Redis queue.
+
+
 ### How to Design a Worker
 
 #### 1. Build Initializer
@@ -144,7 +150,7 @@ class My_worker extends \yidas\queue\worker\Controller
 {
     protected function listenerCallback()
     {
-        // `true` for task existing
+        // `true` for job existing
         return $this->myqueue->exists();
     }
 // ...
@@ -162,8 +168,8 @@ class My_worker extends \yidas\queue\worker\Controller
 {
     protected function workerCallback()
     {
-        // `false` for task not found
-        return $this->myqueue->processTask();
+        // `false` for job not found
+        return $this->myqueue->processJob();
     }
 // ...
 ```
@@ -177,8 +183,8 @@ use yidas\queue\worker\Controller as WorkerController;
 
 class My_worker extends WorkerController
 {
-    // Set for that a listener only create a worker
-    // set to 1 could prevent race condition depended on your queue structure
+    // Setting for that a listener only fork a worker
+    // Setting to 1 could prevent race condition depended on your queue structure
     public $workerMaxNum = 1;
     
     // Enable text log writen into specified file
@@ -194,7 +200,7 @@ class My_worker extends WorkerController
 |$logPath          |string   |null         |Log file path|
 |$phpCommand       |string   |'php'        |PHP CLI command for current environment|
 |$listenerSleep    |integer  |3            |Time interval of listen frequency on idle|
-|$workerSleep      |integer  |0            |Time interval of worker processes|
+|$workerSleep      |integer  |0            |Time interval of worker processes frequency|
 |$workerMaxNum     |integer  |5            |Number of max workers|
 |$workerStartNum   |integer  |1            |Number of workers at start, less than or equal to $workerMaxNum|
 |$workerWaitSeconds|integer  |10           |Waiting time between worker started and next worker starting|
@@ -211,11 +217,40 @@ After configurating a worker, this worker controller is ready to go:
 $ php ./index.php my_worker/listener
 ```
 
-Listener would continuously process listener callback funciton, it would assign works by forking workers while the callback return `true` which means that there has task(s) detected.
+Listener would continuously process listener callback funciton, it would assign works by forking workers while the callback return `true` which means that there has job(s) detected.
 
-Each worker would continuously process worker callback funciton till returning `false`, which means that there are no task detected from the worker. 
+Each worker would continuously process worker callback funciton till returning `false`, which means that there are no job detected from the worker. 
 
 The worker could be called by CLI, for example `$ php ./index.php my_worker/worker`, which the listener is calling the same CLI to fork a worker.
+
+### Running as Service
+
+To run the listener with workers as service in Linux, include an `&` (an ampersand) at the end of the listener command you use to run in the background.  For example:
+
+```
+$ php /srv/ci-project/index.php my_worker/listener &
+```
+
+After that, you could check the listener service by command `ps aux|grep php`:
+
+```
+www-data  2278  0.7  1.0 496852 84144 ?        S    Sep25  37:29 php-fpm: pool www
+www-data  3129  0.0  0.4 327252 31064 ?        S    Sep10   0:34 php /srv/ci-project/index.php my_worker/listener
+...
+```
+
+According to above, you could manage listener and workers such as killing listener by command `kill 3129`.
+
+Workers would run while listener detected job, the running worker processes would also show in `ps aux|grep php`.
+
+
+
+
+
+
+
+
+
 
 
 
