@@ -19,9 +19,11 @@ Features
 
 - ***Multi-Processing** implementation on native PHP-CLI*
 
-- *Easy way to manage **multiple workers/processes***
+- ***Dynamically Workers dispatching** management*
 
-- *Standard Base Controller for inheritance* 
+- ***Running in background permanently** without extra libraries* 
+
+- ***Process Uniqueness Guarantee** feature by Launcher*
 
 ---
 
@@ -29,37 +31,52 @@ OUTLINE
 -------
 
 - [Demonstration](#demonstration)
+- [Introduction](#introduction)
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [Configuration](#configuration)
     - [How to Design a Worker](#how-to-design-a-worker)
         - [1. Build Initializer](#1-build-initializer)
-        - [2. Build Listener](#2-build-listener)
-        - [3. Build Worker](#3-build-worker)
+        - [2. Build Worker](#2-build-worker)
+        - [3. Build Listener](#3-build-listener)
     - [Porperties Setting](#porperties-setting)
         - [Public Properties](#public-properties)
 - [Usage](#usage)
+    - [Running Queue Worker](#running-queue-worker)
+        - [Worker](#worker)
+        - [Listener](#listener)
+    - [Running in Background](#running-in-background)
+        - [Launcher](#launcher)
+        - [Process Status](#process-status)
 
 ---
 
 DEMONSTRATION
 -------------
 
+Running a listener with 2~5 workers setting added per 3 seconds:
 
 ```
-$ php ./index.php worker_controller/listener
+$ php index.php job_controller/listen
+2018-10-06 14:36:28 - Queue Listener - Job detect
+2018-10-06 14:36:28 - Queue Listener - Start dispatch
+2018-10-06 14:36:28 - Queue Listener - Dispatch Worker #1 (PID: 13254)
+2018-10-06 14:36:28 - Queue Listener - Dispatch Worker #2 (PID: 13256)
+2018-10-06 14:36:31 - Queue Listener - Dispatch Worker #3 (PID: 13266)
+2018-10-06 14:36:34 - Queue Listener - Job empty
+2018-10-06 14:36:34 - Queue Listener - Stop dispatch, total cost: 6.00s
 ```
 
-Check log:
+---
 
-```
-Worker Manager start assignment at: 2018-09-08 17:49:15
-Worker #1 create at: 2018-09-08 17:49:15
-Worker #2 create at: 2018-09-08 17:49:25
-Worker #1 close at: 2018-09-08 17:49:28 | cost: 13.51s
-Worker #2 close at: 2018-09-08 17:49:29 | cost: 4.93s
-Worker Manager stop assignment at: 2018-09-08 17:49:30, total cost: 15.02s
-```
+INTRODUCTION
+------------
+
+This library provides a Queue Worker total solution for Codeigniter 3 framework, which includes Listener and Worker for processing new jobs from queue. You may integrate your application queue (such as Redis) with Queue Worker Controller.
+
+Listener could continue to run for detecting new jobs until it is manually stopped or you close your terminal. On the other hand
+, Worker could continue to run for processing new jobs until there is no job left.
+
 ---
 
 REQUIREMENTS
@@ -91,7 +108,7 @@ $config['composer_autoload'] = TRUE;
 CONFIGURATION
 -------------
 
-You need to design porcesses or set properties for your own worker inherited from this library, there are common interfaces as following:
+You need to design handlers for your own worker inherited from this library, there are common interfaces as following:
 
 ```php
 use yidas\queue\worker\Controller as WorkerController;
@@ -101,13 +118,15 @@ class My_worker extends WorkerController
     // Initializer
     protected function init() {}
     
-    // Listener
-    protected function listenerCallback() {}
-    
     // Worker
-    protected function workerCallback() {}
+    protected function handleWork() {}
+    
+    // Listener
+    protected function handleListen() {}
 }
 ```
+
+These handlers are supposed to be designed for detecting the same job queue, but for different purpose. For example, Listener and Worker detect the same Redis list queue, Listener only do dispatching jobs by forking Worker, while Worker continue to takes out jobs and do the processing until job queue is empty.
 
 ### How to Design a Worker
 
@@ -117,6 +136,8 @@ class My_worker extends WorkerController
 protected void init()
 ```
 
+The `init()` method is the constructor of worker controller, it provides you with an interface for defining initializartion such as Codeigniter library loading.
+
 *Example Code:*
 ```php
 class My_worker extends \yidas\queue\worker\Controller
@@ -124,7 +145,7 @@ class My_worker extends \yidas\queue\worker\Controller
     protected function init()
     {
         // Optional autoload 
-        $this->load->library('myqueue');
+        $this->load->library('myjobs');
 
         // Optional shared properties setting
         $this->static = 'static value';
@@ -132,41 +153,55 @@ class My_worker extends \yidas\queue\worker\Controller
 // ...
 ```
 
-#### 2. Build Listener
+#### 2. Build Worker
 
 ```php
-protected boolean listenerCallback(object $static=null)
+protected boolean handleWork(object $static=null)
 ```
+
+The `handleWork()` method is a processor for Worker that continue to take out jobs and do the processing. When this method returns `false`, that means the job queue is empty and the worker will close itself.   
 
 *Example Code:*
 ```php
 class My_worker extends \yidas\queue\worker\Controller
 {
-    protected function listenerCallback()
+    protected function handleWork()
     {
-        // `true` for task existing
-        return $this->myqueue->exists();
+        $job = $this->myjobs->popJob();
+        
+        // `false` for job not found, which would close the worker itself.
+        if (!$job)
+            return false;
+        
+        $this->myjobs->processJob($job);
+        
+        // `true` for job existing, which would keep handling.
+        return true;
     }
 // ...
 ```
 
-#### 3. Build Worker
+#### 3. Build Listener
 
 ```php
-protected boolean workerCallback(object $static=null)
+protected boolean handleListen(object $static=null)
 ```
+
+The `handleListen()` method is a processor for Listener that dispatches workers to handle jobs while it detects new job by returning `true`. When this method returns `false`, that means the job queue is empty and the listener will stop dispatching.
 
 *Example Code:*
 ```php
 class My_worker extends \yidas\queue\worker\Controller
 {
-    protected function workerCallback()
+    protected function handleListen()
     {
-        // `false` for task not found
-        return $this->myqueue->processTask();
+        // `true` for job existing, which leads to dispatch worker(s).
+        // `false` for job not found, which would keep detecting new job
+        return $this->myjobs->exists();
     }
 // ...
 ```
+
 
 ### Porperties Setting
 
@@ -177,11 +212,10 @@ use yidas\queue\worker\Controller as WorkerController;
 
 class My_worker extends WorkerController
 {
-    // Set for that a listener only create a worker
-    // set to 1 could prevent race condition depended on your queue structure
-    public $workerMaxNum = 1;
+    // Setting for that a listener could fork up to 10 workers
+    public $workerMaxNum = 10;
     
-    // Enable text log writen into specified file
+    // Enable text log writen into specified file for listener and worker
     public $logPath = 'tmp/my-worker.log';
 }
 ```
@@ -194,28 +228,112 @@ class My_worker extends WorkerController
 |$logPath          |string   |null         |Log file path|
 |$phpCommand       |string   |'php'        |PHP CLI command for current environment|
 |$listenerSleep    |integer  |3            |Time interval of listen frequency on idle|
-|$workerSleep      |integer  |0            |Time interval of worker processes|
+|$workerSleep      |integer  |0            |Time interval of worker processes frequency|
 |$workerMaxNum     |integer  |5            |Number of max workers|
 |$workerStartNum   |integer  |1            |Number of workers at start, less than or equal to $workerMaxNum|
 |$workerWaitSeconds|integer  |10           |Waiting time between worker started and next worker starting|
-
+|$workerHeathCheck |boolean  |true         |Enable worker health check for listener|
 
 ---
 
 USAGE
 -----
 
-After configurating a worker, this worker controller is ready to go:
+There are 3 actions for usage:
+
+- `listen` A listener to manage and dispatch jobs by forking workers.
+- `work` A worker to process and solve jobs from queue.
+- `launch` A launcher to run `listen` or `work` process in background and keep it running uniquely.
+
+You could run above actions by using Codeigniter 3 PHP-CLI command after configuring a Queue Worker controller.
+
+### Running Queue Worker
+
+#### Worker
+
+To process new jobs from the queue, you could simply run Worker: 
 
 ```
-$ php ./index.php my_worker/listener
+$ php index.php myjob/work
 ```
 
-Listener would continuously process listener callback funciton, it would assign works by forking workers while the callback return `true` which means that there has task(s) detected.
+As your worker processor `handleWork()`, the worker will continue to run (return `true`) until the job queue is empty (return `false`).
 
-Each worker would continuously process worker callback funciton till returning `false`, which means that there are no task detected from the worker. 
 
-The worker could be called by CLI, for example `$ php ./index.php my_worker/worker`, which the listener is calling the same CLI to fork a worker.
+#### Listener
+
+To start a listener to manage workers, you could simply run Listener:
+
+```
+$ php index.php myjob/listen
+```
+
+As your listener processor `handleListen()`, the listener will dispatch workers when detecting new jobs (return `true`) until the job queue is empty with stopping dispatching and listening for next new jobs (return `false`).
+
+Listener manage Workers by forking each Worker into running process, it implements Multi-Processes which could dramatically improve job queue performance.
+
+### Running in Background
+
+This library supports running Listener or Worker permanently in the background, it provides you the ability to run Worker as service.
+
+#### Launcher
+
+To run Listener or Worker in the background, you could call Launcher to launch process:
+
+```
+$ php index.php myjob/launch
+```
+
+By default, Launcher would launch `listen` process, you could also launch `work` by giving parameter:
+
+```
+$ php index.php myjob/launch/worker
+```
+
+Launcher could keep launching process running uniquely, which prevents multiple same listeners or workers running at the same time. For example, the first time to launch a listener:
+
+```ps
+$ php index.php myjob/launch
+Success to launch process `listen`: myjob/listen.
+Called command: php /srv/ci-project/index.php myjob/listen > /dev/null &
+------
+USER   PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+user 14650  0.0  0.7 327144 29836 pts/3    R+   15:43   0:00 php /srv/ci-project/index.php myjob/listen
+```
+
+Then, when you launch the listener again, Launcher would prevent repeated running:
+
+```ps
+$ php index.php myjob/launch
+Skip: Same process `listen` is running: myjob/listen.
+------
+USER   PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+user 14650  0.4  0.9 337764 36616 pts/3    S   15:43   0:00 php /srv/ci-project/index.php myjob/listen
+```
+
+For uniquely work scenario, you may use database as application queue, which would lead to race condition if there are multiple workers handling the same jobs. Unlike memcache list, database queue should be processed by only one worker at the same time. 
+
+#### Process Status
+
+After launching a listener, you could check the listener service by command `ps aux|grep php`:
+
+```ps
+...
+www-data  2278  0.7  1.0 496852 84144 ?        S    Sep25  37:29 php-fpm: pool www
+www-data  3129  0.0  0.4 327252 31064 ?        S    Sep10   0:34 php /srv/ci-project/index.php myjob/listen
+...
+```
+
+According to above, you could manage listener and workers such as killing listener by command `kill 3129`.
+
+Workers would run while listener detected job, the running worker processes would also show in `ps aux|grep php`.
+
+> Manually, you could also use an `&` (an ampersand) at the end of the listener or worker to run in the background.
+
+
+
+
+
 
 
 
