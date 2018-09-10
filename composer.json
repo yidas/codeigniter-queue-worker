@@ -1,0 +1,20 @@
+{
+    "name": "yidas/codeigniter-queue-worker",
+    "description": "CodeIgniter 3 Queue Worker Management Controller",
+    "keywords": ["codeIgniter", "queue", "worker", "listener", "worker-manage"],
+    "homepage": "https://github.com/yidas/codeigniter-queue-worker",
+    "type": "library",
+    "license": "MIT",
+    "support": {
+        "issues": "https://github.com/yidas/codeigniter-queue-worker/issues",
+        "source": "https://github.com/yidas/codeigniter-queue-worker"
+    },
+    "require": {
+        "php": ">=5.4.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "yidas\\queue\\worker\\": "src/"
+        }
+    }
+}
