@@ -130,7 +130,7 @@ class My_worker extends \yidas\queue\worker\Controller
     protected function init()
     {
         // Optional autoload 
-        $this->load->library('myqueue');
+        $this->load->library('myjobs');
 
         // Optional shared properties setting
         $this->static = 'static value';
@@ -141,17 +141,17 @@ class My_worker extends \yidas\queue\worker\Controller
 #### 2. Build Listener
 
 ```php
-protected boolean listenerCallback(object $static=null)
+protected boolean listenCallback(object $static=null)
 ```
 
 *Example Code:*
 ```php
 class My_worker extends \yidas\queue\worker\Controller
 {
-    protected function listenerCallback()
+    protected function listenCallback()
     {
         // `true` for job existing
-        return $this->myqueue->exists();
+        return $this->myjobs->exists();
     }
 // ...
 ```
@@ -159,17 +159,17 @@ class My_worker extends \yidas\queue\worker\Controller
 #### 3. Build Worker
 
 ```php
-protected boolean workerCallback(object $static=null)
+protected boolean workCallback(object $static=null)
 ```
 
 *Example Code:*
 ```php
 class My_worker extends \yidas\queue\worker\Controller
 {
-    protected function workerCallback()
+    protected function workCallback()
     {
         // `false` for job not found
-        return $this->myqueue->processJob();
+        return $this->myjobs->processJob();
     }
 // ...
 ```
@@ -204,6 +204,9 @@ class My_worker extends WorkerController
 |$workerMaxNum     |integer  |5            |Number of max workers|
 |$workerStartNum   |integer  |1            |Number of workers at start, less than or equal to $workerMaxNum|
 |$workerWaitSeconds|integer  |10           |Waiting time between worker started and next worker starting|
+|$workerHeathCheck |boolean  |true         |Enable worker health check for listener|
+
+
 
 
 ---
@@ -214,21 +217,25 @@ USAGE
 After configurating a worker, this worker controller is ready to go:
 
 ```
-$ php ./index.php my_worker/listener
+$ php index.php myjob/listen
 ```
 
-Listener would continuously process listener callback funciton, it would assign works by forking workers while the callback return `true` which means that there has job(s) detected.
+Listener would continuously call listener callback funciton, it would dispatch jobs by forking workers while the callback return `true` which means that there has job(s) detected.
 
-Each worker would continuously process worker callback funciton till returning `false`, which means that there are no job detected from the worker. 
+Each worker would continuously call worker callback funciton till returning `false`, which means that there are no job detected from the worker. 
 
-The worker could be called by CLI, for example `$ php ./index.php my_worker/worker`, which the listener is calling the same CLI to fork a worker.
+The worker could be called by CLI, which the listener is calling the same CLI to fork a worker:
+
+```
+$ php index.php my_worker/worker
+```
 
 ### Running as Service
 
-To run the listener with workers as service in Linux, include an `&` (an ampersand) at the end of the listener command you use to run in the background.  For example:
+To run the listener as service in Linux, include an `&` (an ampersand) at the end of the listener command you use to run in the background.  For example:
 
 ```
-$ php /srv/ci-project/index.php my_worker/listener &
+$ php index.php myjob/listener &
 ```
 
 After that, you could check the listener service by command `ps aux|grep php`:
@@ -245,7 +252,22 @@ Workers would run while listener detected job, the running worker processes woul
 
 
 
+---
 
+RUNNING IN BACKGROUND
+---------------------
+
+To run Listener or Worker in the background, you could call Launcher to launch process:
+
+```
+$ php index.php myjob/launch
+```
+
+By default, Launcher would launch `listen` process, you could also lauch `work` by giving parameter:
+
+```
+$ php index.php myjob/launch/worker
+```
 
 
 
