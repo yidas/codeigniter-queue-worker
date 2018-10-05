@@ -21,7 +21,7 @@ Features
 
 - *Easy way to manage and dispatch **multiple workers/processes*** dynamically
 
-- *Standard Base Controller for inheritance* 
+- ***Running in background permanently** without extra libraries* 
 
 ---
 
@@ -58,6 +58,16 @@ $ php index.php job_controller/listen
 2018-10-06 14:36:34 - Queue Listener - Job empty
 2018-10-06 14:36:34 - Queue Listener - Stop dispatch, total cost: 6.00s
 ```
+
+---
+
+INTRODUCTION
+------------
+
+This library provides a Queue Worker total solution for Codeigniter 3 framework, which includes Listener and Worker for processing new jobs from queue. You may integrate your application queue (such as Redis) with Queue Worker Controller.
+
+Listener could continue to run for detecting new jobs until it is manually stopped or you close your terminal. On the other hand
+, Worker could continue to run for processing new jobs until there is no job left.
 
 ---
 
