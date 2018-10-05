@@ -265,7 +265,7 @@ $ php index.php myjob/launch
 Skip: Same process `listen` is running: myjob/listen.
 ------
 USER   PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
-user 14650  0.0  0.7 327144 29836 pts/3    R+   15:43   0:00 php /srv/ci-project/index.php myjob/listen
+user 14650  0.4  0.9 337764 36616 pts/3    S   15:43   0:00 php /srv/ci-project/index.php myjob/listen
 ```
 
 #### Process Status
