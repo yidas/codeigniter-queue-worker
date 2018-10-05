@@ -204,13 +204,16 @@ class My_worker extends WorkerController
 |$workerWaitSeconds|integer  |10           |Waiting time between worker started and next worker starting|
 |$workerHeathCheck |boolean  |true         |Enable worker health check for listener|
 
-
-
-
 ---
 
 USAGE
 -----
+
+There are 3 actions for usage:
+
+- `listen`: A listener to manage and dispatch jobs by forking workers.
+- `work`: A worker to process and solve jobs from queue.
+- `launch`: A launcher to run `listen` or `work` process in background and keep running process is unique.
 
 After configurating a queue-worker, it is ready to run:
 
