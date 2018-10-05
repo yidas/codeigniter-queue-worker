@@ -29,6 +29,7 @@ OUTLINE
 -------
 
 - [Demonstration](#demonstration)
+- [Introduction](#introduction)
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [Configuration](#configuration)
@@ -39,7 +40,9 @@ OUTLINE
     - [Porperties Setting](#porperties-setting)
         - [Public Properties](#public-properties)
 - [Usage](#usage)
-    - [Running as Service](#running-as-service)
+    - [Running in Background](#running-in-background)
+    - [Launcher](#launcher)
+    - [Process Status](#process-status)
 
 ---
 
@@ -158,7 +161,8 @@ class My_worker extends \yidas\queue\worker\Controller
 {
     protected function listenCallback()
     {
-        // `true` for job existing
+        // `true` for job existing, which leads to dispatch worker(s).
+        // `false` for job not found, which would keep detecting new job
         return $this->myjobs->exists();
     }
 // ...
@@ -176,7 +180,8 @@ class My_worker extends \yidas\queue\worker\Controller
 {
     protected function workCallback()
     {
-        // `false` for job not found
+        // `true` for job existing, which would keep executing the callback.
+        // `false` for job not found, which would close process itself.
         return $this->myjobs->processJob();
     }
 // ...
@@ -225,7 +230,7 @@ There are 3 actions for usage:
 - `work` A worker to process and solve jobs from queue.
 - `launch` A launcher to run `listen` or `work` process in background and keep it running uniquely.
 
-After configurating a queue-worker, it is ready to run:
+After configurating a queue-worker controller, it is ready to run:
 
 ```
 $ php index.php myjob/listen
@@ -277,6 +282,8 @@ Skip: Same process `listen` is running: myjob/listen.
 USER   PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
 user 14650  0.4  0.9 337764 36616 pts/3    S   15:43   0:00 php /srv/ci-project/index.php myjob/listen
 ```
+
+For uniquely work scenario, you may use database as application queue, which would lead to race condition if there are multiple workers handling the same jobs. Unlike memcache list, database queue should be processed by only one worker at the same time. 
 
 #### Process Status
 
