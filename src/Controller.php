@@ -345,18 +345,21 @@ class Controller extends CI_Controller
         // $result = shell_exec("pgrep -f \"{$search}\""); // Lacks of display info
         // Find out the process by name
         $psCmd = "ps aux | grep \"{$search}\" | grep -v grep";
-        $result = shell_exec($psCmd);
-        $exist = ($result) ? true : false;
+        $psInfoCmd = "ps aux | egrep \"PID|{$search}\" | grep -v grep";
+        $exist = (shell_exec($psCmd)) ? true : false;
 
         if ($exist) {
-            die("Skip: Same process `{$action}` is running: {$route}.\n{$result}");
+            
+            $psInfo = shell_exec($psInfoCmd);
+            die("Skip: Same process `{$action}` is running: {$route}.\n------\n{$psInfo}");
         }
 
         // Launch by calling command
         $launchCmd = "{$cmd} > {$logPath} &";
         $result = shell_exec($launchCmd);
         $result = shell_exec($psCmd);
-        echo "Success to launch process `{$action}`: {$route}.\nCalled command: {$launchCmd}\n{$result}";
+        $psInfo = shell_exec($psInfoCmd);
+        echo "Success to launch process `{$action}`: {$route}.\nCalled command: {$launchCmd}\n------\n{$psInfo}";
 
         return;
     }
