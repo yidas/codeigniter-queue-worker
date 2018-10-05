@@ -230,12 +230,18 @@ The worker could be called by CLI, which the listener is calling the same CLI to
 $ php index.php my_worker/worker
 ```
 
-### Running as Service
+### Running in Background
 
-To run the listener as service in Linux, include an `&` (an ampersand) at the end of the listener command you use to run in the background.  For example:
+To run Listener or Worker in the background, you could call Launcher to launch process:
 
 ```
-$ php index.php myjob/listener &
+$ php index.php myjob/launch
+```
+
+By default, Launcher would launch `listen` process, you could also lauch `work` by giving parameter:
+
+```
+$ php index.php myjob/launch/worker
 ```
 
 After that, you could check the listener service by command `ps aux|grep php`:
@@ -250,24 +256,7 @@ According to above, you could manage listener and workers such as killing listen
 
 Workers would run while listener detected job, the running worker processes would also show in `ps aux|grep php`.
 
-
-
----
-
-RUNNING IN BACKGROUND
----------------------
-
-To run Listener or Worker in the background, you could call Launcher to launch process:
-
-```
-$ php index.php myjob/launch
-```
-
-By default, Launcher would launch `listen` process, you could also lauch `work` by giving parameter:
-
-```
-$ php index.php myjob/launch/worker
-```
+> Manually, you could also use an `&` (an ampersand) at the end of the listener or worker to run in the background.
 
 
 
