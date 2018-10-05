@@ -46,21 +46,19 @@ OUTLINE
 DEMONSTRATION
 -------------
 
+Running a listener with 2~5 workers setting added per 3 seconds:
 
 ```
-$ php ./index.php worker_controller/listener
+$ php index.php job_controller/listen
+2018-10-06 14:36:28 - Queue Listener - Job detect
+2018-10-06 14:36:28 - Queue Listener - Start dispatch
+2018-10-06 14:36:28 - Queue Listener - Dispatch Worker #1 (PID: 13254)
+2018-10-06 14:36:28 - Queue Listener - Dispatch Worker #2 (PID: 13256)
+2018-10-06 14:36:31 - Queue Listener - Dispatch Worker #3 (PID: 13266)
+2018-10-06 14:36:34 - Queue Listener - Job empty
+2018-10-06 14:36:34 - Queue Listener - Stop dispatch, total cost: 6.00s
 ```
 
-Check log:
-
-```
-Worker Manager start assignment at: 2018-09-08 17:49:15
-Worker #1 create at: 2018-09-08 17:49:15
-Worker #2 create at: 2018-09-08 17:49:25
-Worker #1 close at: 2018-09-08 17:49:28 | cost: 13.51s
-Worker #2 close at: 2018-09-08 17:49:29 | cost: 4.93s
-Worker Manager stop assignment at: 2018-09-08 17:49:30, total cost: 15.02s
-```
 ---
 
 REQUIREMENTS
@@ -92,7 +90,7 @@ $config['composer_autoload'] = TRUE;
 CONFIGURATION
 -------------
 
-You need to design porcesses or set properties for your own worker inherited from this library, there are common interfaces as following:
+You need to design porcesses for your own worker inherited from this library, there are common interfaces as following:
 
 ```php
 use yidas\queue\worker\Controller as WorkerController;
@@ -214,7 +212,7 @@ class My_worker extends WorkerController
 USAGE
 -----
 
-After configurating a worker, this worker controller is ready to go:
+After configurating a queue-worker, it is ready to run:
 
 ```
 $ php index.php myjob/listen
@@ -224,10 +222,10 @@ Listener would continuously call listener callback funciton, it would dispatch j
 
 Each worker would continuously call worker callback funciton till returning `false`, which means that there are no job detected from the worker. 
 
-The worker could be called by CLI, which the listener is calling the same CLI to fork a worker:
+Also, the worker `work` could be called by CLI, which the listener is calling the same CLI to fork a worker:
 
 ```
-$ php index.php my_worker/worker
+$ php index.php myjob/work
 ```
 
 ### Running in Background
@@ -248,7 +246,7 @@ After that, you could check the listener service by command `ps aux|grep php`:
 
 ```
 www-data  2278  0.7  1.0 496852 84144 ?        S    Sep25  37:29 php-fpm: pool www
-www-data  3129  0.0  0.4 327252 31064 ?        S    Sep10   0:34 php /srv/ci-project/index.php my_worker/listener
+www-data  3129  0.0  0.4 327252 31064 ?        S    Sep10   0:34 php /srv/ci-project/index.php myjob/listen
 ...
 ```
 
