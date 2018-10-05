@@ -19,7 +19,7 @@ Features
 
 - ***Multi-Processing** implementation on native PHP-CLI*
 
-- *Easy way to manage **multiple workers/processes***
+- *Easy way to manage and dispatch **multiple workers/processes*** dynamically
 
 - *Standard Base Controller for inheritance* 
 
