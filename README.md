@@ -211,9 +211,9 @@ USAGE
 
 There are 3 actions for usage:
 
-- `listen`: A listener to manage and dispatch jobs by forking workers.
-- `work`: A worker to process and solve jobs from queue.
-- `launch`: A launcher to run `listen` or `work` process in background and keep running process is unique.
+- `listen` A listener to manage and dispatch jobs by forking workers.
+- `work` A worker to process and solve jobs from queue.
+- `launch` A launcher to run `listen` or `work` process in background and keep it running uniquely.
 
 After configurating a queue-worker, it is ready to run:
 
