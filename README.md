@@ -249,7 +249,7 @@ $ php index.php myjob/launch/worker
 
 Launcher could keep launching process running uniquely, which prevents multiple same listeners or workers running at the same time. For example, the first time to launch a listener:
 
-```
+```ps
 $ php index.php myjob/launch
 Success to launch process `listen`: myjob/listen.
 Called command: php /srv/ci-project/index.php myjob/listen > /dev/null &
@@ -260,7 +260,7 @@ user 14650  0.0  0.7 327144 29836 pts/3    R+   15:43   0:00 php /srv/ci-project
 
 Then, when you launch the listener again, Launcher would prevent repeated running:
 
-```
+```ps
 $ php index.php myjob/launch
 Skip: Same process `listen` is running: myjob/listen.
 ------
@@ -272,7 +272,7 @@ user 14650  0.0  0.7 327144 29836 pts/3    R+   15:43   0:00 php /srv/ci-project
 
 After launching a listener, you could check the listener service by command `ps aux|grep php`:
 
-```
+```ps
 ...
 www-data  2278  0.7  1.0 496852 84144 ?        S    Sep25  37:29 php-fpm: pool www
 www-data  3129  0.0  0.4 327252 31064 ?        S    Sep10   0:34 php /srv/ci-project/index.php myjob/listen
