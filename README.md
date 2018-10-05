@@ -41,8 +41,8 @@ OUTLINE
         - [Public Properties](#public-properties)
 - [Usage](#usage)
     - [Running in Background](#running-in-background)
-    - [Launcher](#launcher)
-    - [Process Status](#process-status)
+        - [Launcher](#launcher)
+        - [Process Status](#process-status)
 
 ---
 
