@@ -162,9 +162,16 @@ class My_worker extends \yidas\queue\worker\Controller
 {
     protected function handleWork()
     {
-        // `true` for job existing, which would keep executing the callback.
-        // `false` for job not found, which would close process itself.
-        return $this->myjobs->processJob();
+        $job = $this->myjobs->popJob();
+        
+        // `false` for job not found, which would close the worker itself.
+        if (!$job)
+            return false;
+        
+        $this->myjobs->processJob($job);
+        
+        // `true` for job existing, which would keep handling.
+        return true;
     }
 // ...
 ```
