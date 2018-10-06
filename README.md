@@ -103,7 +103,7 @@ $config['composer_autoload'] = TRUE;
 CONFIGURATION
 -------------
 
-You need to design porcesses for your own worker inherited from this library, there are common interfaces as following:
+You need to design handlers for your own worker inherited from this library, there are common interfaces as following:
 
 ```php
 use yidas\queue\worker\Controller as WorkerController;
@@ -113,16 +113,15 @@ class My_worker extends WorkerController
     // Initializer
     protected function init() {}
     
-    // Listener
-    protected function listenerCallback() {}
-    
     // Worker
-    protected function workerCallback() {}
+    protected function handleWork() {}
+    
+    // Listener
+    protected function handleListen() {}
 }
 ```
 
 These handlers are supposed to be designed for detecting the same job queue, but for different purpose. For example, Listener and Worker detect the same Redis list queue, Listener only do dispatching jobs by forking Worker, while Worker continue to takes out jobs and do the processing until job queue is empty.
-
 
 ### How to Design a Worker
 
@@ -152,14 +151,16 @@ class My_worker extends \yidas\queue\worker\Controller
 #### 2. Build Worker
 
 ```php
-protected boolean workCallback(object $static=null)
+protected boolean handleWork(object $static=null)
 ```
+
+The `work()` method is the worker that continue to take out jobs and do the processing. When this method returns `false`, that means the job queue is empty and the worker will close itself.   
 
 *Example Code:*
 ```php
 class My_worker extends \yidas\queue\worker\Controller
 {
-    protected function workCallback()
+    protected function handleWork()
     {
         // `true` for job existing, which would keep executing the callback.
         // `false` for job not found, which would close process itself.
@@ -171,14 +172,16 @@ class My_worker extends \yidas\queue\worker\Controller
 #### 3. Build Listener
 
 ```php
-protected boolean listenCallback(object $static=null)
+protected boolean handleListen(object $static=null)
 ```
+
+The `listen()` method is the listener that dispatches workers to handle jobs while it detects new job by returning `true`. When this method returns `false`, that means the job queue is empty and the listener will stop dispatching.
 
 *Example Code:*
 ```php
 class My_worker extends \yidas\queue\worker\Controller
 {
-    protected function listenCallback()
+    protected function handleListen()
     {
         // `true` for job existing, which leads to dispatch worker(s).
         // `false` for job not found, which would keep detecting new job
