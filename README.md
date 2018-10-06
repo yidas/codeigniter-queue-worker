@@ -240,23 +240,36 @@ There are 3 actions for usage:
 - `work` A worker to process and solve jobs from queue.
 - `launch` A launcher to run `listen` or `work` process in background and keep it running uniquely.
 
-After configurating a queue-worker controller, it is ready to run:
+You could run above actions by using Codeigniter 3 PHP-CLI command after configuring a Queue Worker controller.
 
-```
-$ php index.php myjob/listen
-```
+### Running Queue Worker
 
-Listener would continuously call listener callback funciton, it would dispatch jobs by forking workers while the callback return `true` which means that there has job(s) detected.
+#### Worker
 
-Each worker would continuously call worker callback funciton till returning `false`, which means that there are no job detected from the worker. 
-
-Also, the worker `work` could be called by CLI, which the listener is calling the same CLI to fork a worker:
+To process new jobs from the queue, you could simply run Worker: 
 
 ```
 $ php index.php myjob/work
 ```
 
+As your worker processor `handleWork()`, the worker will continue to run (return `true`) until the job queue is empty (return `false`).
+
+
+#### Listener
+
+To start a listener to manage workers, you could simply run Listener:
+
+```
+$ php index.php myjob/listen
+```
+
+As your listener processor `handleListen()`, the listener will dispatch workers when detecting new jobs (return `true`) until the job queue is empty with stopping dispatching and listening for next new jobs (return `false`).
+
+Listener manage Workers by forking each Worker into running process, it implements Multi-Processes which could dramatically improve job queue performance.
+
 ### Running in Background
+
+This library supports running Listener or Worker permanently in the background, it provides you the ability to run Worker as service.
 
 #### Launcher
 
@@ -266,7 +279,7 @@ To run Listener or Worker in the background, you could call Launcher to launch p
 $ php index.php myjob/launch
 ```
 
-By default, Launcher would launch `listen` process, you could also lauch `work` by giving parameter:
+By default, Launcher would launch `listen` process, you could also launch `work` by giving parameter:
 
 ```
 $ php index.php myjob/launch/worker
