@@ -162,10 +162,10 @@ class Controller extends CI_Controller
         }
         
         // Pre-work check
-        if (!method_exists($this, 'listenCallback'))
-            throw new Exception("You need to declare `listenCallback()` method in your worker controller.", 500);
-        if (!method_exists($this, 'workCallback'))
-            throw new Exception("You need to declare `workCallback()` method in your worker controller.", 500);
+        if (!method_exists($this, 'handleListen'))
+            throw new Exception("You need to declare `handleListen()` method in your worker controller.", 500);
+        if (!method_exists($this, 'handleWork'))
+            throw new Exception("You need to declare `handleWork()` method in your worker controller.", 500);
         if ($this->logPath && !file_exists($this->logPath)) {
             // Try to access or create log file
             if ($this->_log('')) {
@@ -202,7 +202,7 @@ class Controller extends CI_Controller
             sleep(0.1);
             
             // Call customized listener process, assigns works while catching true by callback return
-        	$hasEvent = ($this->listenCallback($this->_staticListen)) ? true : false;
+        	$hasEvent = ($this->handleListen($this->_staticListen)) ? true : false;
 
             // Start works if exists
             if ($hasEvent) {  
@@ -277,8 +277,8 @@ class Controller extends CI_Controller
     public function work($id=1)
     {
         // Pre-work check
-        if (!method_exists($this, 'workCallback'))
-            throw new Exception("You need to declare `workCallback()` method in your worker controller.", 500);
+        if (!method_exists($this, 'handleWork'))
+            throw new Exception("You need to declare `handleWork()` method in your worker controller.", 500);
         
         // INI setting
         if ($this->debug) {
@@ -294,7 +294,7 @@ class Controller extends CI_Controller
         $this->_print("Queue Worker - Create #{$id} (PID: {$pid})");
 
         // Call customized worker process, stops till catch false by callback return
-        while ($this->workCallback($this->_staticWork)) {
+        while ($this->handleWork($this->_staticWork)) {
             // Sleep if set
             if ($this->workerSleep) {
                 sleep($this->workerSleep);
@@ -378,8 +378,8 @@ class Controller extends CI_Controller
     public function single($force=false)
     {
         // Pre-work check
-        if (!method_exists($this, 'singleCallback'))
-            throw new Exception("You need to declare `singleCallback()` method in your worker controller.", 500);
+        if (!method_exists($this, 'handleSingle'))
+            throw new Exception("You need to declare `handleSingle()` method in your worker controller.", 500);
 
         // Shared lock flag builder
         $lockFile = sys_get_temp_dir() 
@@ -408,7 +408,7 @@ class Controller extends CI_Controller
         $this->_singleUpdateLock($lockFile);
 
         // Call customized worker process, stops till catch false by callback return
-        while ($this->singleCallback($this->_staticSingle)) {
+        while ($this->handleSingle($this->_staticSingle)) {
 
             // Sleep if set
             if ($this->singleSleep) {
@@ -587,7 +587,7 @@ class Controller extends CI_Controller
      * @return boolean Return true if has work
      */
     /*
-    protected function listenCallback($static)
+    protected function handleListen($static)
     {
         // Override this method
         
@@ -602,7 +602,7 @@ class Controller extends CI_Controller
      * @return boolean Return false to stop work
      */
     /*
-    protected function workCallback($static)
+    protected function handleWork($static)
     {
         // Override this method
         
@@ -617,7 +617,7 @@ class Controller extends CI_Controller
      * @return boolean Return false to stop work
      */
     /*
-    protected function singleCallback($static)
+    protected function handleSingle($static)
     {
         // Override this method
         
