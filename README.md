@@ -207,11 +207,10 @@ use yidas\queue\worker\Controller as WorkerController;
 
 class My_worker extends WorkerController
 {
-    // Setting for that a listener only fork a worker
-    // Setting to 1 could prevent race condition depended on your queue structure
-    public $workerMaxNum = 1;
+    // Setting for that a listener could fork up to 10 workers
+    public $workerMaxNum = 10;
     
-    // Enable text log writen into specified file
+    // Enable text log writen into specified file for listener and worker
     public $logPath = 'tmp/my-worker.log';
 }
 ```
