@@ -154,7 +154,7 @@ class My_worker extends \yidas\queue\worker\Controller
 protected boolean handleWork(object $static=null)
 ```
 
-The `work()` method is the worker that continue to take out jobs and do the processing. When this method returns `false`, that means the job queue is empty and the worker will close itself.   
+The `handleWork()` method is a processor for Worker that continue to take out jobs and do the processing. When this method returns `false`, that means the job queue is empty and the worker will close itself.   
 
 *Example Code:*
 ```php
@@ -175,7 +175,7 @@ class My_worker extends \yidas\queue\worker\Controller
 protected boolean handleListen(object $static=null)
 ```
 
-The `listen()` method is the listener that dispatches workers to handle jobs while it detects new job by returning `true`. When this method returns `false`, that means the job queue is empty and the listener will stop dispatching.
+The `handleListen()` method is a processor for Listener that dispatches workers to handle jobs while it detects new job by returning `true`. When this method returns `false`, that means the job queue is empty and the listener will stop dispatching.
 
 *Example Code:*
 ```php
