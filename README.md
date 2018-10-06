@@ -121,9 +121,7 @@ class My_worker extends WorkerController
 }
 ```
 
-You need to develop the queue processer by your own and then encapsulate it into the queue worker controller, which this worker library detects jobs by your callback result. 
-
-For example, you could develop memory cache queue to handle the listener and worker callbacks. In other words, your processes for listener and worker both detect jobs from same job queue such as Redis queue.
+These handlers are supposed to be designed for detecting the same job queue, but for different purpose. For example, Listener and Worker detect the same Redis list queue, Listener only do dispatching jobs by forking Worker, while Worker continue to takes out jobs and do the processing until job queue is empty.
 
 
 ### How to Design a Worker
@@ -133,6 +131,8 @@ For example, you could develop memory cache queue to handle the listener and wor
 ```php
 protected void init()
 ```
+
+The `init()` method is the constructor of worker controller, it provides you with an interface for defining initializartion such as Codeigniter library loading.
 
 *Example Code:*
 ```php
@@ -149,7 +149,26 @@ class My_worker extends \yidas\queue\worker\Controller
 // ...
 ```
 
-#### 2. Build Listener
+#### 2. Build Worker
+
+```php
+protected boolean workCallback(object $static=null)
+```
+
+*Example Code:*
+```php
+class My_worker extends \yidas\queue\worker\Controller
+{
+    protected function workCallback()
+    {
+        // `true` for job existing, which would keep executing the callback.
+        // `false` for job not found, which would close process itself.
+        return $this->myjobs->processJob();
+    }
+// ...
+```
+
+#### 3. Build Listener
 
 ```php
 protected boolean listenCallback(object $static=null)
@@ -168,24 +187,6 @@ class My_worker extends \yidas\queue\worker\Controller
 // ...
 ```
 
-#### 3. Build Worker
-
-```php
-protected boolean workCallback(object $static=null)
-```
-
-*Example Code:*
-```php
-class My_worker extends \yidas\queue\worker\Controller
-{
-    protected function workCallback()
-    {
-        // `true` for job existing, which would keep executing the callback.
-        // `false` for job not found, which would close process itself.
-        return $this->myjobs->processJob();
-    }
-// ...
-```
 
 ### Porperties Setting
 
