@@ -19,7 +19,7 @@ Features
 
 - ***Multi-Processing** implementation on native PHP-CLI*
 
-- *Easy way to manage and dispatch **multiple workers/processes*** dynamically
+- ***Dynamically Workers** dispatching management
 
 - ***Running in background permanently** without extra libraries* 
 
