@@ -6,20 +6,21 @@
     <br>
 </p>
 
-CodeIgniter 3 Queue Worker Management Controller
+CodeIgniter 3 Daemon Queue Worker Management Controller
 
 [![Latest Stable Version](https://poser.pugx.org/yidas/codeigniter-queue-worker/v/stable?format=flat-square)](https://packagist.org/packages/yidas/codeigniter-queue-worker)
-[![Latest Unstable Version](https://poser.pugx.org/yidas/codeigniter-queue-worker/v/unstable?format=flat-square)](https://packagist.org/packages/yidas/codeigniter-queue-worker)
 [![License](https://poser.pugx.org/yidas/codeigniter-queue-worker/license?format=flat-square)](https://packagist.org/packages/yidas/codeigniter-queue-worker)
 
 This Queue Worker extension is collected into [yidas/codeigniter-pack](https://github.com/yidas/codeigniter-pack) which is a complete solution for Codeigniter framework.
+
+> This library only provides worker controller, you need to implement your own queue driver with handler/process in it.  
 
 Features
 --------
 
 - ***Multi-Processing** implementation on native PHP-CLI*
 
-- ***Dynamically Workers dispatching** management*
+- ***Dynamically Workers dispatching (Daemon)** management*
 
 - ***Running in background permanently** without extra libraries* 
 
@@ -54,7 +55,7 @@ OUTLINE
 DEMONSTRATION
 -------------
 
-Running a listener with 2~5 workers setting added per 3 seconds:
+Running a listener (Daemon) with 2~5 workers setting added per 3 seconds:
 
 ```
 $ php index.php job_controller/listen
@@ -72,10 +73,18 @@ $ php index.php job_controller/listen
 INTRODUCTION
 ------------
 
-This library provides a Queue Worker total solution for Codeigniter 3 framework, which includes Listener and Worker for processing new jobs from queue. You may integrate your application queue (such as Redis) with Queue Worker Controller.
+This library provides a Daemon Queue Worker total solution for Codeigniter 3 framework with Multi-Processes implementation, it includes Listener (Daemon) and Worker for processing new jobs from queue. You may integrate your application queue (such as Redis) with Queue Worker Controller.
 
-Listener could continue to run for detecting new jobs until it is manually stopped or you close your terminal. On the other hand
-, Worker could continue to run for processing new jobs until there is no job left.
+PHP is a lack of support for multithreading at the core language level, this library implements multithreading by managing multiprocessing.
+
+For more concepts, the following diagram shows the implementation structure of this library:
+
+<img src="https://raw.githubusercontent.com/yidas/codeigniter-queue-worker/master/img/introduction-structure.png" />
+
+Listener (Daemon) could continue to run for detecting new jobs until it is manually stopped or you close your terminal. On the other hand
+, Worker could continue to run for processing new jobs until there is no job left, which the workers could be called by Listener.
+
+Launcher is suitable for launching a listener process, which the running Listener process could be unique that the second launch would detect existent listener and do NOT launch again.
 
 ---
 
@@ -108,7 +117,7 @@ $config['composer_autoload'] = TRUE;
 CONFIGURATION
 -------------
 
-You need to design handlers for your own worker inherited from this library, there are common interfaces as following:
+First, create a controller that extends the working controller, and then use your own queue driver to design your own handler to implement the worker controller. There are common interfaces as following:
 
 ```php
 use yidas\queue\worker\Controller as WorkerController;
@@ -126,7 +135,7 @@ class My_worker extends WorkerController
 }
 ```
 
-These handlers are supposed to be designed for detecting the same job queue, but for different purpose. For example, Listener and Worker detect the same Redis list queue, Listener only do dispatching jobs by forking Worker, while Worker continue to takes out jobs and do the processing until job queue is empty.
+These handlers are supposed to be designed for detecting the same job queue, but for different purpose. For example, if you are using Redis as message queue, Listener and Worker detect the same Redis list queue, Listener only do dispatching jobs by forking Worker, while Worker continue to takes out jobs and do the processing until job queue is empty.
 
 ### How to Design a Worker
 
@@ -144,14 +153,13 @@ class My_worker extends \yidas\queue\worker\Controller
 {
     protected function init()
     {
-        // Optional autoload 
+        // Optional autoload (Load your own libraries or models)
         $this->load->library('myjobs');
-
-        // Optional shared properties setting
-        $this->static = 'static value';
     }
 // ...
 ```
+
+> As above, `myjobs` library is defined by your own application which handles your job processes.
 
 #### 2. Build Worker
 
@@ -167,15 +175,17 @@ class My_worker extends \yidas\queue\worker\Controller
 {
     protected function handleWork()
     {
+        // Your own method to get a job from your queue in the application
         $job = $this->myjobs->popJob();
         
-        // `false` for job not found, which would close the worker itself.
+        // return `false` for job not found, which would close the worker itself.
         if (!$job)
             return false;
         
+        // Your own method to process a job
         $this->myjobs->processJob($job);
         
-        // `true` for job existing, which would keep handling.
+        // return `true` for job existing, which would keep handling.
         return true;
     }
 // ...
@@ -195,8 +205,9 @@ class My_worker extends \yidas\queue\worker\Controller
 {
     protected function handleListen()
     {
-        // `true` for job existing, which leads to dispatch worker(s).
-        // `false` for job not found, which would keep detecting new job
+        // Your own method to detect job existence
+        // return `true` for job existing, which leads to dispatch worker(s).
+        // return `false` for job not found, which would keep detecting new job
         return $this->myjobs->exists();
     }
 // ...
@@ -241,7 +252,7 @@ USAGE
 
 There are 3 actions for usage:
 
-- `listen` A listener to manage and dispatch jobs by forking workers.
+- `listen` A listener (Daemon) to manage and dispatch jobs by forking workers.
 - `work` A worker to process and solve jobs from queue.
 - `launch` A launcher to run `listen` or `work` process in background and keep it running uniquely.
 
