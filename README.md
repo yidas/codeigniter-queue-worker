@@ -159,7 +159,7 @@ class My_worker extends \yidas\queue\worker\Controller
 // ...
 ```
 
-> As above, `myjobs` library is defined by your own application which handles your job processes.
+> As above, `myjobs` library is defined by your own application which handles your job processes. [Example code of myjobs with Redis](https://github.com/yidas/codeigniter-queue-worker/blob/master/examples/myjobs/MyjobsWithRedis.php)
 
 #### 2. Build Worker
 
