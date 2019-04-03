@@ -240,7 +240,7 @@ class My_worker extends WorkerController
 |$phpCommand       |string   |'php'        |PHP CLI command for current environment|
 |$listenerSleep    |integer  |3            |Time interval of listen frequency on idle|
 |$workerSleep      |integer  |0            |Time interval of worker processes frequency|
-|$workerMaxNum     |integer  |5            |Number of max workers|
+|$workerMaxNum     |integer  |4            |Number of max workers|
 |$workerStartNum   |integer  |1            |Number of workers at start, less than or equal to $workerMaxNum|
 |$workerWaitSeconds|integer  |10           |Waiting time between worker started and next worker starting|
 |$workerHeathCheck |boolean  |true         |Enable worker health check for listener|

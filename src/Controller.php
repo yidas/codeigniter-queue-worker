@@ -56,7 +56,7 @@ class Controller extends CI_Controller
      *
      * @var integer
      */
-    public $workerMaxNum = 5;
+    public $workerMaxNum = 4;
 
     /**
      * Number of workers at start, less than or equal to $workerMaxNum
