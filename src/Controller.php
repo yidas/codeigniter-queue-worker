@@ -9,7 +9,7 @@ use CI_Controller;
  * Worker Manage Controller
  * 
  * @author  Nick Tsai <myintaer@gmail.com>
- * @version 1.0.0
+ * @version 1.0.1
  * @todo    Implement by using pcntl
  */
 class Controller extends CI_Controller
