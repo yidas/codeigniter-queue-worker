@@ -22,6 +22,15 @@ class Controller extends CI_Controller
     public $debug = true;
 
     /**
+     * Filter path when search PID
+     *  true: check the path
+     *  false: ignore path (as default in 1.0.0 and 1.0.1)
+     *
+     * @var boolean
+     */
+    public $psPathFilter = false;
+
+    /**
      * Log file path
      *
      * @var string
@@ -347,10 +356,15 @@ class Controller extends CI_Controller
         // Find out the process by name
         $psCmd = "ps aux | grep \"{$search}\" | grep -v grep";
         $psInfoCmd = "ps aux | egrep \"PID|{$search}\" | grep -v grep";
+
+        if ($this->psPathFilter) {
+            $psCmd .= " | grep ".FCPATH;
+            $psInfoCmd .= " | grep ".FCPATH;
+        }
+
         $exist = (shell_exec($psCmd)) ? true : false;
 
         if ($exist) {
-            
             $psInfo = shell_exec($psInfoCmd);
             die("Skip: Same process `{$action}` is running: {$route}.\n------\n{$psInfo}");
         }
