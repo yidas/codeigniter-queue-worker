@@ -10,6 +10,7 @@ CodeIgniter 3 Daemon Queue Worker Management Controller
 
 [![Latest Stable Version](https://poser.pugx.org/yidas/codeigniter-queue-worker/v/stable?format=flat-square)](https://packagist.org/packages/yidas/codeigniter-queue-worker)
 [![License](https://poser.pugx.org/yidas/codeigniter-queue-worker/license?format=flat-square)](https://packagist.org/packages/yidas/codeigniter-queue-worker)
+[![Total Downloads](https://poser.pugx.org/yidas/codeigniter-queue-worker/downloads?format=flat-square)](https://packagist.org/packages/yidas/codeigniter-queue-worker)
 
 This Queue Worker extension is collected into [yidas/codeigniter-pack](https://github.com/yidas/codeigniter-pack) which is a complete solution for Codeigniter framework.
 
