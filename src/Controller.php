@@ -184,7 +184,11 @@ class Controller extends CI_Controller
         // Worker command builder
         // Be careful to avoid infinite loop by opening listener itself
         $workerAction = 'work';
-        $route = $this->router->fetch_directory() . $this->router->fetch_class() . "/{$workerAction}";
+        if($this->_isCI3()) {
+            $route = $this->router->directory . $this->router->class . "/{$workerAction}";
+        } else {
+            $route = $this->router->fetch_directory() . $this->router->fetch_class() . "/{$workerAction}";
+        }
         $workerCmd = "{$this->phpCommand} " . FCPATH . "index.php {$route}";
 
         // Static variables
@@ -338,7 +342,11 @@ class Controller extends CI_Controller
         $logPath = '/dev/null';
         
         // Action command builder
-        $route = $this->router->fetch_directory() . $this->router->fetch_class() . "/{$action}";
+        if($this->_isCI3()) {
+            $route = $this->router->directory . $this->router->class . "/{$action}";
+        } else {
+            $route = $this->router->fetch_directory() . $this->router->fetch_class() . "/{$action}";
+        }
         $cmd = "{$this->phpCommand} " . FCPATH . "index.php {$route}";
 
         // Check process exists
@@ -568,6 +576,19 @@ class Controller extends CI_Controller
     protected function _isPidAlive($pid)
     {
         return ((function_exists('posix_getpgid') && posix_getpgid($pid)) || file_exists("/proc/{$pid}")) ? true : false;
+    }
+
+    /**
+     * Check if i'm using codeingniter 3
+     *
+     * @return boolean
+     */
+    protected function _isCI3() {
+        $ci_version = explode('.', CI_VERSION);
+        if ($ci_version[0] >= 3) {
+            return true;
+        }
+        return false;
     }
 
     /**
